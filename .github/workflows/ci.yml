@@ -19,12 +19,16 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -e ".[dev]" pip-audit
+      - name: Install
+        run: |
+          # The runner's bundled setuptools is old and has known CVEs; upgrade before installing.
+          python -m pip install --upgrade pip setuptools
+          pip install -e ".[dev]" pip-audit
       - name: Lint
         run: |
           ruff check citewise tests
@@ -38,11 +42,11 @@ jobs:
           alembic upgrade head
           alembic check
       - name: Dependency audit
-        run: pip-audit
+        run: pip-audit --skip-editable  # audits dependencies; citewise itself isn't on PyPI
 
   docker:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: docker build -t citewise:ci .

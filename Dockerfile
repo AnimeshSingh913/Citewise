@@ -4,7 +4,7 @@ ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /src
 COPY pyproject.toml README.md LICENSE ./
 COPY citewise ./citewise
-RUN python -m venv /venv && /venv/bin/pip install ".[s3]"
+RUN python -m venv /venv && /venv/bin/pip install --upgrade pip setuptools && /venv/bin/pip install ".[s3]"
 
 FROM python:3.11-slim AS runtime
 ENV PATH=/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
