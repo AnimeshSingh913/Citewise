@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Citewise</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <!-- Sign in -->
+  <main id="auth-view" class="auth" hidden>
+    <form id="auth-form" class="auth-card" novalidate>
+      <div class="brand brand-lg"><span class="brand-mark" aria-hidden="true">❝</span>Citewise</div>
+      <p class="muted">Answers from your documents, with the page they came from.</p>
+      <label>Email <input id="auth-email" type="email" autocomplete="email" required></label>
+      <label>Password <input id="auth-password" type="password" autocomplete="current-password" minlength="8" required></label>
+      <p id="auth-error" class="error" role="alert" hidden></p>
+      <button id="auth-submit" class="btn btn-primary" type="submit">Sign in</button>
+      <button id="auth-toggle" class="btn btn-link" type="button">New here? Create an account</button>
+    </form>
+  </main>
+
+  <!-- App -->
+  <div id="app-view" class="shell" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">❝</span>Citewise</div>
+        <button id="close-sidebar" class="icon-btn only-mobile" aria-label="Close menu">✕</button>
+      </div>
+      <button id="new-chat" class="btn btn-primary btn-block">+ New chat</button>
+
+      <section class="panel">
+        <h2 class="panel-title">Chats</h2>
+        <ul id="conversation-list" class="list"></ul>
+        <button id="more-conversations" class="btn btn-link" hidden>Show more</button>
+      </section>
+
+      <section class="panel panel-docs">
+        <h2 class="panel-title">Documents <span id="doc-count" class="count"></span></h2>
+        <label id="dropzone" class="dropzone" tabindex="0">
+          <input id="file-input" type="file" multiple accept=".pdf,.docx,.md,.markdown,.txt" hidden>
+          <strong>Drop files</strong> or click to upload
+          <span class="muted small">PDF, DOCX, Markdown, TXT</span>
+        </label>
+        <ul id="document-list" class="list docs"></ul>
+        <button id="more-documents" class="btn btn-link" hidden>Show more</button>
+      </section>
+
+      <div class="sidebar-foot">
+        <span id="user-email" class="muted small"></span>
+        <button id="logout" class="btn btn-link small">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="chat">
+      <header class="chat-head">
+        <button id="open-sidebar" class="icon-btn only-mobile" aria-label="Open menu">☰</button>
+        <h1 id="chat-title" class="chat-title">New chat</h1>
+        <span id="scope-pill" class="pill" hidden></span>
+      </header>
+
+      <div id="thread" class="thread" aria-live="polite">
+        <div id="empty-state" class="empty">
+          <h2>Ask anything about your documents</h2>
+          <p class="muted">Every answer links each claim to the passage and page it came from.</p>
+        </div>
+      </div>
+
+      <form id="composer" class="composer">
+        <textarea id="question" rows="1" placeholder="Ask a question…" maxlength="4000" required></textarea>
+        <button id="send" class="btn btn-primary" type="submit" aria-label="Send">Ask</button>
+      </form>
+    </main>
+
+    <aside id="source-drawer" class="drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <div id="source-file" class="drawer-title"></div>
+          <div id="source-meta" class="muted small"></div>
+        </div>
+        <button id="close-drawer" class="icon-btn" aria-label="Close source">✕</button>
+      </div>
+      <blockquote id="source-text" class="source-text"></blockquote>
+      <button id="open-source" class="btn">Open document at this page</button>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

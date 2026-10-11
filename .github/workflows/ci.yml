@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: citewise
+          POSTGRES_PASSWORD: citewise
+          POSTGRES_DB: citewise
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]" pip-audit
+      - name: Lint
+        run: |
+          ruff check citewise tests
+          ruff format --check citewise tests
+      - name: Tests
+        run: pytest -q
+      - name: Migrations apply cleanly on Postgres and match the models
+        env:
+          CITEWISE_DATABASE_URL: postgresql+asyncpg://citewise:citewise@localhost:5432/citewise
+        run: |
+          alembic upgrade head
+          alembic check
+      - name: Dependency audit
+        run: pip-audit
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t citewise:ci .

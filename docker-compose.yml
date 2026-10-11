@@ -1,0 +1,54 @@
+# Production-shaped local stack: Postgres + Qdrant server + API + a separate worker pool.
+#   cp .env.example .env   # add ANTHROPIC_API_KEY and a CITEWISE_JWT_SECRET
+#   docker compose up --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: citewise
+      POSTGRES_PASSWORD: citewise
+      POSTGRES_DB: citewise
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U citewise"]
+      interval: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.15.4
+    volumes: [qdrant:/qdrant/storage]
+
+  api:
+    build: .
+    command: serve
+    env_file: .env
+    environment: &common
+      CITEWISE_ENV: production
+      CITEWISE_DATABASE_URL: postgresql+asyncpg://citewise:citewise@postgres:5432/citewise
+      CITEWISE_QDRANT_URL: http://qdrant:6333
+      CITEWISE_UPLOAD_DIR: /data/uploads
+      CITEWISE_RUN_WORKER_IN_API: "false"
+      CITEWISE_CORS_ORIGINS: '["http://localhost:8000"]'
+    volumes: [uploads:/data]
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      qdrant: { condition: service_started }
+
+  worker:
+    build: .
+    command: worker
+    env_file: .env
+    environment: *common
+    volumes: [uploads:/data]
+    healthcheck:
+      disable: true
+    deploy:
+      replicas: 2  # safe: jobs are claimed with FOR UPDATE SKIP LOCKED + leases
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  qdrant:
+  uploads:
